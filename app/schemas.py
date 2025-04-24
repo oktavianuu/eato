@@ -21,8 +21,9 @@ class MenuItem(MenuItemBase):
     # Response schema includes the database-generated ID
     id: int
 
-    class Config:
-        orm_mode = True         # Allow returning ORM objects directly
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # ---------------------------------------------------
@@ -39,8 +40,9 @@ class OrderItemCreate(OrderItemBase):
 class OrderItem(OrderItemBase):
     id: int                     # Database-generated ID for each order line
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # ---------------------------------------------------
@@ -61,8 +63,9 @@ class Order(OrderBase):
     timestamp: datetime         # When the order was placed
     items: List[OrderItem]      # Nested list of ordered items
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # ---------------------------------------------------
@@ -81,5 +84,6 @@ class InventoryItemCreate(InventoryItemBase):
 class InventoryItem(InventoryItemBase):
     id: int                     # Database-generated ID for each stock item
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
