@@ -32,7 +32,7 @@ class Order(Base):
     items = relationship("OrderItem", back_populates="order")
 
 
-# ORDER ITEM MODEL 📝 (linking orders to menu items, for many-to-many)
+# ORDER ITEM MODEL  (linking orders to menu items, for many-to-many)
 class OrderItem(Base):
     __tablename__ = "order_items"
 
@@ -45,7 +45,7 @@ class OrderItem(Base):
     menu_item = relationship("MenuItem", back_populates="orders")
 
 
-# INVENTORY MODEL 🌶️
+# INVENTORY MODEL 
 class InventoryItem(Base):
     __tablename__ = "inventory_items"
 
