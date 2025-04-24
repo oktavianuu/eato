@@ -1,56 +1,82 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
 
-# MENU ITEM MODEL
+# ---------------------------------------------------
+# MenuItem: represents a dish or drink available to order
+# ---------------------------------------------------
 class MenuItem(Base):
-    __tablename__ = "menu_items"  # Table name in the DB
+    __tablename__ = "menu_items"  # Table name in the database
 
-    id = Column(Integer, primary_key=True, index=True)  # Unique ID for each item
-    name = Column(String, index=True)  # Dish name
-    price = Column(Float)  # Price of the dish
-    category = Column(String)  # "Food", "Drink", etc.
-    available = Column(Boolean, default=True)  # Show on menu or not
-    ingredients = Column(String)  # Optional: List of ingredients (JSON/text)
+    # Unique identifier for each menu item
+    id = Column(Integer, primary_key=True, index=True)
+    # Name of the dish or drink (e.g., 'Cappuccino', 'Nasi Goreng')
+    name = Column(String, nullable=False, index=True)
+    # Price in the local currency
+    price = Column(Float, nullable=False)
+    # Category grouping (e.g., 'Food', 'Drink', 'Dessert')
+    category = Column(String, nullable=False)
+    # If False, item is hidden/sold-out on the menu
+    available = Column(Boolean, default=True, nullable=False)
+    # JSON-encoded string or comma-separated list of ingredients
+    ingredients = Column(String, nullable=True)
 
-    # Relationship to OrderItems (many-to-many via order_items table)
+    # Relationship to OrderItem: one menu item may appear in many orders
     orders = relationship("OrderItem", back_populates="menu_item")
 
 
-# ORDER MODEL
+# ---------------------------------------------------
+# Order: represents a customer order
+# ---------------------------------------------------
 class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)  # Unique order ID
-    customer_name = Column(String, nullable=True)  # Optional customer name
-    table_number = Column(Integer, nullable=True)  # For dine-in orders
-    status = Column(String, default="Received")  # "Received", "In Kitchen", "Ready"
-    timestamp = Column(DateTime, default=datetime.utcnow)  # Order time
+    # Optional customer name (dine-in or pickup)
+    customer_name = Column(String, nullable=True)
+    # Table number for dine-in orders
+    table_number = Column(Integer, nullable=True)
+    # Order status: Received -> In Kitchen -> Ready
+    status = Column(String, default="Received", nullable=False)
+    # Timestamp when the order was created (UTC by default)
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
-    # Relationship to OrderItems
+    # Relationship to OrderItem: one order can contain multiple items
     items = relationship("OrderItem", back_populates="order")
 
 
-# ORDER ITEM MODEL  (linking orders to menu items, for many-to-many)
+# ---------------------------------------------------
+# OrderItem: junction table linking orders and menu items
+# ---------------------------------------------------
 class OrderItem(Base):
     __tablename__ = "order_items"
 
     id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"))  # Link to Order
-    menu_item_id = Column(Integer, ForeignKey("menu_items.id"))  # Link to MenuItem
-    quantity = Column(Integer)  # Quantity of this item in the order
+    # Foreign key linking to Order
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    # Foreign key linking to MenuItem
+    menu_item_id = Column(Integer, ForeignKey("menu_items.id"), nullable=False)
+    # Quantity of this menu item in the order
+    quantity = Column(Integer, nullable=False)
 
+    # Relationships for easy ORM navigation
     order = relationship("Order", back_populates="items")
     menu_item = relationship("MenuItem", back_populates="orders")
 
 
-# INVENTORY MODEL 
+# ---------------------------------------------------
+# InventoryItem: tracks raw ingredients or stock
+# ---------------------------------------------------
 class InventoryItem(Base):
     __tablename__ = "inventory_items"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)  # Ingredient name
-    quantity = Column(Float)  # Current amount in stock
-    unit = Column(String)  # "kg", "pcs", "liters", etc.
-    threshold = Column(Float, default=10.0)  # When to trigger low stock alert
+    id = Column(Integer, primary_key=True, index=True)  # Unique ingredient ID
+    # Ingredient name (e.g., 'Chicken Breast', 'Espresso Beans')
+    name = Column(String, nullable=False, index=True)
+    # Current stock quantity
+    quantity = Column(Float, nullable=False)
+    # Unit of measurement (e.g., 'kg', 'pcs', 'liters')
+    unit = Column(String, nullable=False)
+    # Threshold to trigger a low-stock alert
+    threshold = Column(Float, default=10.0)
