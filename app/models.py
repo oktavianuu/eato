@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
 
-# MENU ITEM MODEL 🍜
+# MENU ITEM MODEL
 class MenuItem(Base):
     __tablename__ = "menu_items"  # Table name in the DB
 
@@ -18,7 +18,7 @@ class MenuItem(Base):
     orders = relationship("OrderItem", back_populates="menu_item")
 
 
-# ORDER MODEL 📦
+# ORDER MODEL
 class Order(Base):
     __tablename__ = "orders"
 
