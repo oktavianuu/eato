@@ -26,7 +26,7 @@ def send_order_alert(order_id: int):
 
     1. Open a DB session
     2. Query the Order and its items
-    3. Build a user-friendly message
+    3. Build a user-friendly message, handling missing references
     4. Send via Telegram
     5. Close the session
     """
@@ -43,10 +43,15 @@ def send_order_alert(order_id: int):
             f"🍽️ Table: {order.table_number or 'N/A'}",
             "🧾 Items:"
         ]
-        # Append each ordered item
+
+        # Append each ordered item, handling missing menu items gracefully
         for item in order.items:
             menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
-            lines.append(f"- {menu_item.name} x {item.quantity}")
+            if menu_item:
+                item_name = menu_item.name
+            else:
+                item_name = f"[Unknown Item ID {item.menu_item_id}]"
+            lines.append(f"- {item_name} x {item.quantity}")
 
         # Join into a single message
         message = "\n".join(lines)
@@ -61,8 +66,3 @@ def send_order_alert(order_id: int):
         print(f"Error sending Telegram message: {e}")
     finally:
         db.close()
-
-# Dependencies:
-# pip install python-telegram-bot python-dotenv
-# Add TELEGRAM_TOKEN and TELEGRAM_CHAT_ID to .env
-# Hook send_order_alert into order creation endpoint using BackgroundTasks
