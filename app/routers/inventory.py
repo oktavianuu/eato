@@ -1,12 +1,10 @@
-# eato/app/routers/inventory.py
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
 import app.crud as crud
 import app.schemas as schemas
-from app.database import get_db   # our shared dependency
+from app.database import get_db
 
 router = APIRouter(
     prefix="/inventory",
@@ -17,26 +15,32 @@ router = APIRouter(
 @router.post("/", response_model=schemas.InventoryItem, status_code=201)
 async def create_inventory(
     item: schemas.InventoryItemCreate,
-    db: Session = Depends(get_db),
-    ):
+    db: Session = Depends(get_db)
+):
     """
     Add a new ingredient to inventory.
     """
     return crud.create_inventory_item(db, item)
 
 @router.get("/", response_model=List[schemas.InventoryItem])
-async def read_inventory(skip: int = 0, limit: int = 100,
-                         db: Session = Depends(get_db)):
+async def read_inventory(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
     """
-    List inventory items with pagination.
+    List all inventory items, with pagination.
     """
     return crud.get_inventory_items(db, skip=skip, limit=limit)
 
 @router.get("/{item_id}", response_model=schemas.InventoryItem)
-async def read_inventory_item(item_id: int,
-                              db: Session = Depends(get_db)):
+async def read_inventory_item(
+    item_id: int,
+    db: Session = Depends(get_db)
+):
     """
-    Fetch one inventory item by ID, 404 if not found.
+    Fetch a single inventory item by its ID.
+    Raises 404 if not found.
     """
     db_item = crud.get_inventory_item(db, item_id)
     if not db_item:
@@ -44,11 +48,13 @@ async def read_inventory_item(item_id: int,
     return db_item
 
 @router.put("/{item_id}", response_model=schemas.InventoryItem)
-async def update_inventory(item_id: int,
-                           item: schemas.InventoryItemCreate,
-                           db: Session = Depends(get_db)):
+async def update_inventory(
+    item_id: int,
+    item: schemas.InventoryItemCreate,
+    db: Session = Depends(get_db)
+):
     """
-    Update an existing inventory item.
+    Update an existing inventory record.
     """
     db_item = crud.update_inventory_item(db, item_id, item)
     if not db_item:
@@ -56,10 +62,13 @@ async def update_inventory(item_id: int,
     return db_item
 
 @router.delete("/{item_id}", status_code=204)
-async def delete_inventory(item_id: int,
-                           db: Session = Depends(get_db)):
+async def delete_inventory(
+    item_id: int,
+    db: Session = Depends(get_db)
+):
     """
-    Delete an inventory item by ID.
+    Remove an inventory item by ID.
+    Returns 204 on success or 404 if missing.
     """
     success = crud.delete_inventory_item(db, item_id)
     if not success:
